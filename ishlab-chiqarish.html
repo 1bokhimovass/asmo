@@ -41,27 +41,13 @@
         text-decoration: none;
         border-radius: 12px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        transition: all 0.2s ease;
         border: none;
         margin-right: 15px;
-      }
-      .back-btn:hover {
-        background: #f8f9fa;
-        transform: scale(1.05);
-        color: #000;
-      }
-      .back-btn:active {
-        transform: scale(0.9);
       }
       .card-form {
         border-radius: 20px;
         border: none;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      }
-      .form-label {
-        font-size: 0.85rem;
-        color: #555;
-        margin-bottom: 4px;
       }
 
       @media (max-width: 768px) {
@@ -70,7 +56,6 @@
         }
         .table-responsive tr {
           display: block;
-          border: none;
           margin-bottom: 15px;
           background: #fff;
           border-radius: 15px;
@@ -118,18 +103,13 @@
     <div class="container py-3">
       <div class="row">
         <div class="col-12 col-lg-4 mb-4">
-          <div class="card card-form p-3 p-md-4">
+          <div class="card card-form p-3">
             <h5 class="fw-bold text-center mb-3">Ma'lumot Kiritish</h5>
-
-            <select id="prod_select" style="display: none">
-              <option value="GORE-TEX PATCH">Gore-Tex Patch</option>
-              <option value="LED PCB">LED PCB</option>
-              <option value="AVTO SWITCH">Avto Switch</option>
-            </select>
-
             <div class="row g-2">
               <div class="col-6">
-                <label class="form-label fw-bold">Partiya (Batch ID)</label>
+                <label class="form-label fw-bold small"
+                  >Partiya (Batch ID)</label
+                >
                 <input
                   type="text"
                   id="batch_id"
@@ -137,53 +117,47 @@
                   placeholder="#P-2025"
                 />
               </div>
-              <div class="col-6" id="olcham_wrapper">
-                <label class="form-label fw-bold">O'lchami</label>
-                <input
-                  type="text"
-                  id="olcham_id"
-                  class="form-control"
-                  placeholder="Masalan: 25"
-                />
-              </div>
               <div class="col-6">
-                <label class="form-label fw-bold">Tayyor (dona)</label>
+                <label class="form-label fw-bold small text-success"
+                  >Tayyor (dona)</label
+                >
                 <input
                   type="number"
                   id="prod_qty"
                   class="form-control border-success"
-                  placeholder="0"
+                  oninput="autoCalculateLED()"
                 />
               </div>
-              <div class="col-6">
-                <label class="form-label fw-bold text-danger"
-                  >Brak (dona)</label
+
+              <div id="led_inputs" style="display: none">
+                <div class="col-12 mt-2">
+                  <label class="form-label fw-bold small text-primary"
+                    >Ishchi soni</label
+                  >
+                  <input
+                    type="number"
+                    id="worker_count"
+                    class="form-control border-primary"
+                    value="3"
+                    oninput="autoCalculateLED()"
+                  />
+                </div>
+              </div>
+
+              <div class="col-12 mt-2">
+                <label class="form-label fw-bold small text-muted"
+                  >1 mahsulot narxi (ming so'mda)</label
                 >
                 <input
                   type="number"
-                  id="scrap_qty"
-                  class="form-control border-danger"
-                  value="0"
-                />
-              </div>
-              <div class="col-12">
-                <label class="form-label fw-bold text-primary"
-                  >1 dona narxi (so'm)</label
-                >
-                <input
-                  type="number"
-                  id="unit_price"
-                  class="form-control border-primary"
-                  placeholder="Narxni kiriting"
-                  value="0"
+                  id="unit_price_input"
+                  class="form-control fw-bold"
+                  placeholder="Masalan: 50"
                 />
               </div>
             </div>
-
             <button
-              style="margin-top: 15px"
-              id="save_btn"
-              class="btn btn-primary w-100 fw-bold shadow"
+              class="btn btn-primary w-100 fw-bold shadow mt-4"
               onclick="addRecord()"
             >
               SAQLASH
@@ -192,22 +166,16 @@
         </div>
 
         <div class="col-12 col-lg-8">
-          <h6
-            class="fw-bold mb-3 text-uppercase text-muted"
-            style="letter-spacing: 1px"
-          >
+          <h6 class="fw-bold mb-3 text-uppercase text-muted">
             📜 Oxirgi amallar
           </h6>
           <div class="table-responsive">
             <table class="table align-middle">
               <thead class="table-light">
-                <tr>
-                  <th>Vaqt / Mahsulot</th>
-                  <th id="th_olcham">O'lchami</th>
-                  <th>ID</th>
+                <tr id="table-head-row">
+                  <th>Vaqt / Batch</th>
                   <th>Tayyor</th>
-                  <th>Brak</th>
-                  <th>Summa</th>
+                  <th>Jami Summa</th>
                 </tr>
               </thead>
               <tbody id="archive-table"></tbody>
@@ -219,50 +187,61 @@
 
     <script>
       let currentProduct = "";
+      const savedType = localStorage.getItem("selectedProduct");
 
       window.onload = function () {
-        const savedType = localStorage.getItem("selectedProduct");
-        const olchamWrapper = document.getElementById("olcham_wrapper");
-        const pageTitleEl = document.getElementById("page-title");
+        const ledInputs = document.getElementById("led_inputs");
+        const tableHead = document.getElementById("table-head-row");
 
-        // Mahsulotni localStorage ga qarab ANIQ belgilaymiz
-        if (savedType === "Gore") {
-          currentProduct = "GORE-TEX PATCH";
-          olchamWrapper.style.display = "block";
-        } else if (savedType === "LED") {
+        if (savedType === "LED") {
           currentProduct = "LED PCB";
-          olchamWrapper.style.display = "none";
-        } else if (savedType === "Switch") {
-          currentProduct = "AVTO SWITCH";
-          olchamWrapper.style.display = "none";
+          ledInputs.style.display = "block";
+          tableHead.innerHTML += `<th>Jami Xarajat</th>`;
         } else {
-          window.location.href = "index.html";
-          return;
+          currentProduct =
+            savedType === "Gore" ? "GORE-TEX PATCH" : "AVTO SWITCH";
         }
-
-        // Sarlavhani o'rnatamiz
-        pageTitleEl.innerText = currentProduct + " : Ishlab chiqarish";
-
-        // Tarixni yuklaymiz
+        document.getElementById("page-title").innerText = currentProduct;
         loadLastRecords();
       };
 
+      function autoCalculateLED() {
+        if (currentProduct !== "LED PCB") return;
+        const qty = parseInt(document.getElementById("prod_qty").value) || 0;
+        const workers =
+          parseInt(document.getElementById("worker_count").value) || 0;
+
+        if (qty > 0) {
+          // LED uchun parda ortidagi formula
+          const grandTotal = workers * 110000 + qty * 0.06 * 500 + qty * 177;
+          // Narx katagiga minglikka bo'lib chiqaradi (masalan: 50.5)
+          document.getElementById("unit_price_input").value = (
+            grandTotal /
+            qty /
+            1000
+          ).toFixed(1);
+        }
+      }
+
       function addRecord() {
-        const saveBtn = document.getElementById("save_btn");
-        const batch = document.getElementById("batch_id").value.trim();
         const qty = parseInt(document.getElementById("prod_qty").value);
-        const scrap = parseInt(document.getElementById("scrap_qty").value) || 0;
-        const price =
-          parseFloat(document.getElementById("unit_price").value) || 0;
-        const olcham = document.getElementById("olcham_id").value.trim();
+        const batch = document.getElementById("batch_id").value.trim();
+        const priceInput =
+          parseFloat(document.getElementById("unit_price_input").value) || 0;
+        const workers =
+          parseInt(document.getElementById("worker_count")?.value) || 0;
 
-        if (!batch || isNaN(qty) || qty <= 0)
-          return alert("Ma'lumotlarni to'liq kiriting!");
+        if (!batch || !qty) return alert("Ma'lumotlarni to'liq kiriting!");
 
-        saveBtn.disabled = true;
-        saveBtn.innerText = "SAQLANMOQDA...";
+        // PARDA ORTIDAGI HISOB-KITOB: 50 -> 50,000
+        const realUnitPrice = priceInput * 1000;
+        const jamiSumma = qty * realUnitPrice;
 
-        const totalSum = qty * price;
+        let jamiXarajat = 0;
+        if (currentProduct === "LED PCB") {
+          jamiXarajat = workers * 110000 + qty * 0.06 * 500 + qty * 177;
+        }
+
         const record = {
           time: new Date().toLocaleString("uz-UZ", {
             hour: "2-digit",
@@ -273,84 +252,50 @@
           product: currentProduct,
           batch: batch,
           qty: qty,
-          scrap: scrap,
-          price: price,
-          total: totalSum,
-          olcham: currentProduct === "GORE-TEX PATCH" ? olcham : "-",
+          jami_summa: Math.round(jamiSumma),
+          jami_xarajat: Math.round(jamiXarajat),
         };
 
         db.ref("asmo_all_history")
           .push(record)
           .then(() => {
-            const zaxiraRef = db.ref(
-              "asmo_tayyor_mahsulot_zaxirasi/" + currentProduct
-            );
-            zaxiraRef.once("value").then((snap) => {
-              const currentTotal = snap.val() || 0;
-              zaxiraRef.set(currentTotal + qty).then(() => {
-                alert("✅ " + currentProduct + " uchun saqlandi!");
-                document.getElementById("batch_id").value = "";
-                document.getElementById("prod_qty").value = "";
-                document.getElementById("scrap_qty").value = "0";
-                document.getElementById("unit_price").value = "0";
-                document.getElementById("olcham_id").value = "";
-              });
-            });
-          })
-          .catch((err) => alert("Xato: " + err.message))
-          .finally(() => {
-            saveBtn.disabled = false;
-            saveBtn.innerText = "SAQLASH";
+            alert("Saqlandi! Jami: " + jamiSumma.toLocaleString() + " so'm");
+            location.reload();
           });
       }
 
       function loadLastRecords() {
         db.ref("asmo_all_history")
-          .limitToLast(50)
-          .on("value", (snapshot) => {
+          .limitToLast(15)
+          .on("value", (snap) => {
             const table = document.getElementById("archive-table");
-            const thOlcham = document.getElementById("th_olcham");
             table.innerHTML = "";
-
-            // Ustunni ko'rsatish yoki yashirish
-            thOlcham.style.display =
-              currentProduct === "GORE-TEX PATCH" ? "" : "none";
-
-            const data = snapshot.val();
+            const data = snap.val();
             if (data) {
-              // FAQAT joriy mahsulotni filtrlaymiz
               Object.values(data)
-                .filter((item) => item.product === currentProduct)
+                .filter((i) => i.product === currentProduct)
                 .reverse()
                 .forEach((item) => {
-                  let olchamCell =
-                    currentProduct === "GORE-TEX PATCH"
-                      ? `<td data-label="O'lchami"><span class="badge bg-info text-dark border">${
-                          item.olcham || "-"
-                        }</span></td>`
-                      : "";
-
-                  table.innerHTML += `
+                  let rowHtml = `
                   <tr>
-                    <td data-label="Mahsulot"><small class="text-muted d-block">${
-                      item.time
-                    }</small><span class="fw-bold text-primary">${
-                    item.product
-                  }</span></td>
-                    ${olchamCell}
-                    <td data-label="Batch"><span class="badge bg-light text-dark border">${
+                    <td data-label="Vaqt/Batch"><b>${
                       item.batch
-                    }</span></td>
+                    }</b><br><small class="text-muted">${item.time}</small></td>
                     <td data-label="Tayyor" class="text-success fw-bold">${
                       item.qty
-                    }</td>
-                    <td data-label="Brak" class="text-danger fw-bold">${
-                      item.scrap
-                    }</td>
-                    <td data-label="Summa" class="fw-bold text-dark">${(
-                      item.total || 0
-                    ).toLocaleString()} so'm</td>
-                  </tr>`;
+                    } dona</td>
+                    <td data-label="Jami Summa" class="text-primary fw-bold">${(
+                      item.jami_summa || 0
+                    ).toLocaleString()} so'm</td>`;
+
+                  if (currentProduct === "LED PCB") {
+                    rowHtml += `<td data-label="Jami Xarajat" class="text-muted">${(
+                      item.jami_xarajat || 0
+                    ).toLocaleString()} so'm</td>`;
+                  }
+
+                  rowHtml += `</tr>`;
+                  table.innerHTML += rowHtml;
                 });
             }
           });
