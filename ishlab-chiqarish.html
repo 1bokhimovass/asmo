@@ -17,17 +17,29 @@
     <script src="config.js"></script>
 
     <style>
+      :root {
+        --bg-color: #f8f9fa;
+        --card-bg: #ffffff;
+        --text-color: #333;
+      }
+      [data-theme="dark"] {
+        --bg-color: #121212;
+        --card-bg: #1e1e1e;
+        --text-color: #e0e0e0;
+      }
       body {
-        background-color: #f8f9fa;
+        background-color: var(--bg-color);
+        color: var(--text-color);
         font-family: "Segoe UI", sans-serif;
         padding-bottom: 50px;
+        transition: 0.3s;
       }
       .header-fixed {
         position: sticky;
         top: 0;
-        background: white;
+        background: var(--card-bg);
         z-index: 1000;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         padding: 12px 0;
       }
       .back-btn {
@@ -36,8 +48,8 @@
         justify-content: center;
         width: 42px;
         height: 42px;
-        background: white;
-        color: #333;
+        background: var(--card-bg);
+        color: var(--text-color);
         text-decoration: none;
         border-radius: 12px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
@@ -47,7 +59,17 @@
       .card-form {
         border-radius: 20px;
         border: none;
+        background: var(--card-bg);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      }
+      .form-control {
+        background: transparent;
+        color: var(--text-color);
+        border: 1px solid #ced4da;
+      }
+      .form-control:focus {
+        background: transparent;
+        color: var(--text-color);
       }
 
       @media (max-width: 768px) {
@@ -57,7 +79,7 @@
         .table-responsive tr {
           display: block;
           margin-bottom: 15px;
-          background: #fff;
+          background: var(--card-bg);
           border-radius: 15px;
           padding: 10px;
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
@@ -150,9 +172,10 @@
                 >
                 <input
                   type="number"
+                  step="0.1"
                   id="unit_price_input"
                   class="form-control fw-bold"
-                  placeholder="Masalan: 50"
+                  placeholder="Masalan: 50.5"
                 />
               </div>
             </div>
@@ -187,7 +210,23 @@
 
     <script>
       let currentProduct = "";
+      let globalSettings = {};
       const savedType = localStorage.getItem("selectedProduct");
+
+      // 1. Firebase'dan dinamik sozlamalarni olish
+      db.ref("asmo_settings").on("value", (snap) => {
+        globalSettings = snap.val() || {
+          led_worker_wage: 110000,
+          led_mat_coeff: 0.06,
+          led_extra_cost: 177,
+        };
+        autoCalculateLED();
+      });
+
+      // 2. Sahifa yuklanganda mavzuni (Dark Mode) tekshirish
+      if (localStorage.getItem("theme") === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
 
       window.onload = function () {
         const ledInputs = document.getElementById("led_inputs");
@@ -196,7 +235,9 @@
         if (savedType === "LED") {
           currentProduct = "LED PCB";
           ledInputs.style.display = "block";
-          tableHead.innerHTML += `<th>Jami Xarajat</th>`;
+          if (!tableHead.innerHTML.includes("Jami Xarajat")) {
+            tableHead.innerHTML += `<th>Jami Xarajat</th>`;
+          }
         } else {
           currentProduct =
             savedType === "Gore" ? "GORE-TEX PATCH" : "AVTO SWITCH";
@@ -205,16 +246,21 @@
         loadLastRecords();
       };
 
+      // 3. Avtomatik hisoblash (Parda ortidagi kalkulyator)
       function autoCalculateLED() {
-        if (currentProduct !== "LED PCB") return;
+        if (currentProduct !== "LED PCB" || !globalSettings.led_worker_wage)
+          return;
+
         const qty = parseInt(document.getElementById("prod_qty").value) || 0;
         const workers =
           parseInt(document.getElementById("worker_count").value) || 0;
 
         if (qty > 0) {
-          // LED uchun parda ortidagi formula
-          const grandTotal = workers * 110000 + qty * 0.06 * 500 + qty * 177;
-          // Narx katagiga minglikka bo'lib chiqaradi (masalan: 50.5)
+          const grandTotal =
+            workers * globalSettings.led_worker_wage +
+            qty * globalSettings.led_mat_coeff * 500 +
+            qty * globalSettings.led_extra_cost;
+
           document.getElementById("unit_price_input").value = (
             grandTotal /
             qty /
@@ -223,6 +269,7 @@
         }
       }
 
+      // 4. Ma'lumotni bazaga yozish
       function addRecord() {
         const qty = parseInt(document.getElementById("prod_qty").value);
         const batch = document.getElementById("batch_id").value.trim();
@@ -233,13 +280,15 @@
 
         if (!batch || !qty) return alert("Ma'lumotlarni to'liq kiriting!");
 
-        // PARDA ORTIDAGI HISOB-KITOB: 50 -> 50,000
         const realUnitPrice = priceInput * 1000;
         const jamiSumma = qty * realUnitPrice;
 
         let jamiXarajat = 0;
         if (currentProduct === "LED PCB") {
-          jamiXarajat = workers * 110000 + qty * 0.06 * 500 + qty * 177;
+          jamiXarajat =
+            workers * globalSettings.led_worker_wage +
+            qty * globalSettings.led_mat_coeff * 500 +
+            qty * globalSettings.led_extra_cost;
         }
 
         const record = {
@@ -254,19 +303,23 @@
           qty: qty,
           jami_summa: Math.round(jamiSumma),
           jami_xarajat: Math.round(jamiXarajat),
+          timestamp: Date.now(),
         };
 
         db.ref("asmo_all_history")
           .push(record)
           .then(() => {
             alert("Saqlandi! Jami: " + jamiSumma.toLocaleString() + " so'm");
-            location.reload();
+            document.getElementById("prod_qty").value = "";
+            document.getElementById("batch_id").value = "";
+            document.getElementById("unit_price_input").value = "";
           });
       }
 
+      // 5. Tarixni yuklash
       function loadLastRecords() {
         db.ref("asmo_all_history")
-          .limitToLast(15)
+          .limitToLast(20)
           .on("value", (snap) => {
             const table = document.getElementById("archive-table");
             table.innerHTML = "";
@@ -293,7 +346,6 @@
                       item.jami_xarajat || 0
                     ).toLocaleString()} so'm</td>`;
                   }
-
                   rowHtml += `</tr>`;
                   table.innerHTML += rowHtml;
                 });
