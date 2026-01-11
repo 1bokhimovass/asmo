@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baza - ASMO AVTO</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="config.js"></script>
+
+    <style>
+      body {
+        background-color: #f4f7f6;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .main-card {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+      }
+      .back-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        background: white;
+        color: #333;
+        text-decoration: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s ease;
+        border: none;
+        margin-right: 15px;
+      }
+      .back-btn:hover {
+        background: #f8f9fa;
+        transform: scale(1.05);
+        color: #000;
+      }
+      .back-btn:active {
+        transform: scale(0.9);
+      }
+
+      @media (max-width: 768px) {
+        .table-responsive thead {
+          display: none;
+        }
+        .table-responsive tr {
+          display: block;
+          margin-bottom: 15px;
+          border: 1px solid #eee;
+          border-radius: 12px;
+          background: #fff;
+          padding: 10px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .table-responsive td {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border: none;
+          padding: 5px 10px;
+          text-align: right;
+        }
+        .table-responsive td::before {
+          content: attr(data-label);
+          font-weight: bold;
+          text-align: left;
+          color: #666;
+        }
+      }
+
+      .sticky-header {
+        position: sticky;
+        top: 0;
+        background: #f4f7f6;
+        z-index: 100;
+        padding: 15px 0;
+      }
+      .text-summa {
+        color: #198754;
+        font-weight: bold;
+      }
+    </style>
+
+    <script>
+      auth.onAuthStateChanged((user) => {
+        if (!user) window.location.href = "login.html";
+      });
+    </script>
+  </head>
+  <body>
+    <div class="sticky-header mb-3">
+      <div class="container d-flex align-items-center">
+        <a href="index.html" class="back-btn">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
+            />
+          </svg>
+        </a>
+        <h2 class="fw-bold mb-0">📊 <span id="baza-title">Baza</span></h2>
+      </div>
+    </div>
+
+    <div class="container pb-5">
+      <div class="card main-card shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="py-3 ps-4">Sana</th>
+                <th class="py-3">Mahsulot</th>
+                <th class="py-3">Partiya</th>
+                <th class="py-3">Miqdor</th>
+                <th class="py-3 pe-4">Summa</th>
+              </tr>
+            </thead>
+            <tbody id="baza-table">
+              <tr>
+                <td colspan="5" class="py-5 text-center text-muted">
+                  Yuklanmoqda...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const savedTitle = localStorage.getItem("activeSubTitle");
+      const savedType = localStorage.getItem("selectedProduct");
+
+      let filterName = "";
+      // Mahsulot nomini aniqlash (index.html dagi nomlar bilan bir xil bo'lishi shart)
+      if (savedTitle === "Gore-Tex Patch" || savedType === "Gore")
+        filterName = "GORE-TEX PATCH";
+      else if (savedTitle === "LED PCB" || savedType === "LED")
+        filterName = "LED PCB";
+      else if (savedTitle === "Avto Switch" || savedType === "Switch")
+        filterName = "AVTO SWITCH";
+
+      if (filterName) {
+        document.getElementById("baza-title").innerText =
+          filterName + " : Ombor";
+      }
+
+      db.ref("asmo_all_history").on("value", (snapshot) => {
+        const data = snapshot.val();
+        const table = document.getElementById("baza-table");
+
+        if (data) {
+          const allRecords = Object.values(data);
+          // Faqat tanlangan mahsulotga tegishli ma'lumotlarni filtrlaymiz
+          const filteredRecords = allRecords.filter(
+            (item) => item.product === filterName
+          );
+
+          if (filteredRecords.length > 0) {
+            table.innerHTML = filteredRecords
+              .reverse()
+              .map((item) => {
+                // Summani hisoblash (agar narx bo'lmasa 0 deb oladi)
+                const totalSum = (
+                  item.qty * (item.price || 0)
+                ).toLocaleString();
+
+                return `
+                <tr>
+                  <td data-label="Sana" class="ps-4"><small class="text-muted">${item.time}</small></td>
+                  <td data-label="Mahsulot"><strong>${item.product}</strong></td>
+                  <td data-label="Partiya"><span class="badge bg-light text-dark border">${item.batch}</span></td>
+                  <td data-label="Miqdor" class="fw-bold text-primary">${item.qty} dona</td>
+                  <td data-label="Summa" class="pe-4 text-summa">${totalSum} so'm</td>
+                </tr>`;
+              })
+              .join("");
+          } else {
+            table.innerHTML =
+              "<tr><td colspan='5' class='py-5 text-center'>Ushbu mahsulot bo'yicha ma'lumot topilmadi.</td></tr>";
+          }
+        } else {
+          table.innerHTML =
+            "<tr><td colspan='5' class='py-5 text-center'>Baza bo'sh.</td></tr>";
+        }
+      });
+    </script>
+  </body>
+</html>

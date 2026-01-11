@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kirish - ASMO AVTO</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="config.js"></script>
+
+    <style>
+      body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI", sans-serif;
+        margin: 0;
+      }
+      .login-box {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        width: 90%;
+        max-width: 400px;
+      }
+      .btn-login {
+        background: #0d6efd;
+        color: white;
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: bold;
+        border: none;
+        margin-top: 20px;
+        transition: 0.3s;
+      }
+      .btn-login:hover {
+        background: #0b5ed7;
+      }
+      .loading {
+        opacity: 0.7;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-box">
+      <div class="text-center mb-4">
+        <h2 class="fw-bold text-primary">ASMO AVTO</h2>
+        <p class="text-muted small">
+          Tizimga kirish uchun ma'lumotlarni kiriting
+        </p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Email manzili</label>
+        <input type="email" id="email" class="form-control" placeholder="" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Parol</label>
+        <input
+          type="password"
+          id="password"
+          class="form-control"
+          placeholder="******"
+        />
+      </div>
+
+      <button id="loginBtn" onclick="kirish()" class="btn-login">
+        TIZIMGA KIRISH
+      </button>
+      <div
+        id="error"
+        class="text-danger small mt-3 text-center"
+        style="min-height: 20px"
+      ></div>
+    </div>
+
+    <script>
+      // 1. Yo'naltirish funksiyasi
+      function redirectUser(email) {
+        if (email === "asmo.admin@gmail.com") {
+          window.location.href = "direktor.html"; // Direktor sahifasi
+        } else {
+          window.location.href = "index.html"; // Ishchilar sahifasi
+        }
+      }
+
+      // 2. Agar foydalanuvchi allaqachon login qilgan bo'lsa
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          redirectUser(user.email);
+        }
+      });
+
+      // 3. Kirish funksiyasi
+      function kirish() {
+        const email = document.getElementById("email").value.trim();
+        const parol = document.getElementById("password").value;
+        const errorDiv = document.getElementById("error");
+        const loginBtn = document.getElementById("loginBtn");
+
+        if (!email || !parol) {
+          errorDiv.innerText = "Email va parolni to'ldiring!";
+          return;
+        }
+
+        errorDiv.innerText = "";
+        loginBtn.classList.add("loading");
+        loginBtn.innerText = "TEKSHIRILMOQDA...";
+
+        auth
+          .signInWithEmailAndPassword(email, parol)
+          .then((userCredential) => {
+            // Muvaffaqiyatli kirsa, emailni tekshirib yo'naltiramiz
+            redirectUser(userCredential.user.email);
+          })
+          .catch((error) => {
+            loginBtn.classList.remove("loading");
+            loginBtn.innerText = "TIZIMGA KIRISH";
+
+            // Xatolik xabarini ko'rsatish
+            if (
+              error.code === "auth/wrong-password" ||
+              error.code === "auth/user-not-found"
+            ) {
+              errorDiv.innerText = "Email yoki parol noto'g'ri!";
+            } else {
+              errorDiv.innerText = "Xatolik yuz berdi. Qayta urinib ko'ring.";
+            }
+            console.error("Xatolik:", error.message);
+          });
+      }
+
+      // Enter tugmasini bosganda kirishni ishlatish
+      document.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          kirish();
+        }
+      });
+    </script>
+  </body>
+</html>
