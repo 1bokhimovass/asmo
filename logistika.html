@@ -8,10 +8,8 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="config.js"></script>
 
     <style>
@@ -49,18 +47,17 @@
         text-decoration: none;
         border-radius: 12px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        transition: 0.2s;
-        border: none;
-      }
-      .back-btn:hover {
-        background: #f8f9fa;
       }
       .stock-badge {
         font-size: 0.9rem;
         padding: 8px 15px;
         border-radius: 10px;
-        background: #f0f2f5;
-        color: #444;
+        background: #eef2ff;
+        color: #4338ca;
+        border: 1px solid #c7d2fe;
+      }
+      .text-purple {
+        color: #6f42c1;
       }
     </style>
   </head>
@@ -87,20 +84,15 @@
       <div class="row justify-content-center">
         <div class="col-md-6">
           <div class="card log-card p-4">
-            <h5
-              class="fw-bold text-center mb-4 text-purple"
-              style="color: #6f42c1"
-            >
-              YUKNI ZAVODGA YUBORISH
-            </h5>
+            <h5 class="fw-bold text-center mb-4 text-purple">YUKNI YUBORISH</h5>
 
             <div class="mb-3 text-center">
               <span class="small text-muted text-uppercase"
                 >Tanlangan mahsulot:</span
-              ><br />
-              <h4 class="fw-bold" id="display-product-name">---</h4>
-              <div id="stock-info" class="stock-badge d-inline-block mt-2">
-                Omborda qoldiq: <b id="current-stock">0</b> dona
+              >
+              <h4 class="fw-bold" id="display-product-name">Yuklanmoqda...</h4>
+              <div class="stock-badge d-inline-block mt-2 fw-bold">
+                Ombor qoldig'i: <span id="current-stock">0</span> dona
               </div>
             </div>
 
@@ -108,37 +100,58 @@
 
             <div class="mb-3">
               <label class="form-label small fw-bold"
-                >Qaysi zavodga / Manzil</label
+                >Qayerga yuborilmoqda? (Zavod nomi)</label
               >
               <input
                 type="text"
-                id="log-zavod"
+                id="log-destination"
                 class="form-control"
-                placeholder="Masalan: UzChassis, UzTongHe"
+                placeholder="Masalan: UZCHASIS"
               />
             </div>
 
             <div class="mb-3">
               <label class="form-label small fw-bold"
-                >Yuboriladigan miqdor (dona)</label
+                >Mijozni tanlang (Ro'yxatdan o'tganlar)</label
               >
-              <input
-                type="number"
-                id="log-qty"
-                class="form-control fw-bold text-primary"
-                placeholder="0"
-              />
+              <select
+                id="log-mijoz-select"
+                class="form-select text-primary fw-bold"
+              >
+                <option value="" disabled selected>
+                  -- Mijozni tanlang --
+                </option>
+              </select>
+            </div>
+
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-bold">Miqdor (dona)</label>
+                <input
+                  type="number"
+                  id="log-qty"
+                  class="form-control fw-bold"
+                  placeholder="0"
+                />
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label small fw-bold">Mashina raqami</label>
+                <input
+                  type="text"
+                  id="log-car"
+                  class="form-control"
+                  placeholder="01 A 777 AA"
+                />
+              </div>
             </div>
 
             <div class="mb-4">
-              <label class="form-label small fw-bold"
-                >Mashina / Haydovchi ma'lumoti</label
-              >
+              <label class="form-label small fw-bold">Haydovchi tel</label>
               <input
-                type="text"
-                id="log-car"
+                type="tel"
+                id="log-driver-phone"
                 class="form-control"
-                placeholder="Masalan: 01 A 777 AA (Ali)"
+                placeholder="+998"
               />
             </div>
 
@@ -146,7 +159,7 @@
               class="btn btn-send w-100 shadow-sm"
               onclick="sendToZavod()"
             >
-              YUKNI RO'YXATDAN O'TKAZISH VA YUBORISH
+              YUKNI YUBORISH VA TASDIQLASH
             </button>
           </div>
         </div>
@@ -154,81 +167,120 @@
     </div>
 
     <script>
-      // 1. Tanlangan mahsulotni aniqlash (Index'dan kelgan ma'lumot)
-      const savedTitle =
-        localStorage.getItem("activeSubTitle") || "Noma'lum mahsulot";
-      const savedType = localStorage.getItem("selectedProduct");
+      // 1. Mahsulot turini localStorage'dan aniqlash
+      const savedTitle = (
+        localStorage.getItem("activeSubTitle") || ""
+      ).toUpperCase();
+      const savedType = localStorage.getItem("selectedProduct") || "";
 
       let filterName = "";
-      if (savedTitle === "Gore-Tex Patch" || savedType === "Gore")
+      if (savedTitle.includes("GORE") || savedType === "Gore")
         filterName = "GORE-TEX PATCH";
-      else if (savedTitle === "LED PCB" || savedType === "LED")
+      else if (savedTitle.includes("LED") || savedType === "LED")
         filterName = "LED PCB";
-      else if (savedTitle === "Avto Switch" || savedType === "Switch")
-        filterName = "AVTO SWITCH";
+      else filterName = "AVTO SWITCH";
 
       document.getElementById("display-product-name").innerText = filterName;
 
-      // 2. Ombor qoldig'ini real-vaqtda ko'rsatib turish
+      // 2. Ombor qoldig'ini Firebase'dan o'qish
       const stockRef = db.ref("asmo_tayyor_mahsulot_zaxirasi/" + filterName);
       stockRef.on("value", (snap) => {
-        document.getElementById("current-stock").innerText = snap.val() || 0;
+        document.getElementById("current-stock").innerText = (
+          snap.val() || 0
+        ).toLocaleString();
       });
 
-      // 3. Yuk yuborish funksiyasi
-      function sendToZavod() {
-        const zavod = document.getElementById("log-zavod").value.trim();
-        const qty = parseFloat(document.getElementById("log-qty").value);
-        const car = document.getElementById("log-car").value.trim();
-
-        if (!zavod || !qty || qty <= 0)
-          return alert("Iltimos, zavod nomi va miqdorni to'g'ri kiriting!");
-
-        stockRef.once("value").then((snap) => {
-          const current = snap.val() || 0;
-          if (qty > current) {
-            return alert(
-              "Xatolik! Tayyor mahsulot omborida yetarli miqdor yo'q.\nHozirgi qoldiq: " +
-                current
-            );
-          }
-
-          // Tasdiqlash
-          if (
-            !confirm(
-              `${qty} dona ${filterName}ni ${zavod}ga yuborishni tasdiqlaysizmi?`
-            )
-          )
-            return;
-
-          // A. Ombordan ayirish
-          stockRef.set(current - qty).then(() => {
-            // B. Yuklar tarixiga yozish
-            db.ref("asmo_zavod_shippings").push({
-              product: filterName,
-              zavod: zavod,
-              qty: qty,
-              car: car,
-              time: new Date().toLocaleString("uz-UZ"),
-              timestamp: Date.now(),
-            });
-
-            // C. Umumiy tarixga (Ombor tarixi sahifasi uchun) ham yozamiz
-            db.ref("asmo_ombor_records").push({
-              type: "Sotuv", // Logistika yuborishni "Sotuv/Chiqish" deb hisoblaymiz
-              product: filterName,
-              info: zavod + " (Mashina: " + car + ")",
-              qty: qty,
-              responsible: auth.currentUser ? auth.currentUser.email : "Logist",
-              time: new Date().toLocaleString("uz-UZ"),
-            });
-
-            alert("Yuk muvaffaqiyatli yuborildi!");
-            document.getElementById("log-zavod").value = "";
-            document.getElementById("log-qty").value = "";
-            document.getElementById("log-car").value = "";
+      // 3. MIJOZLARNI BOT BAZASIDAN YUKLASH
+      db.ref("mijozlar").on("value", (snap) => {
+        const select = document.getElementById("log-mijoz-select");
+        select.innerHTML =
+          '<option value="" disabled selected>-- Mijozni tanlang --</option>';
+        if (snap.exists()) {
+          snap.forEach((child) => {
+            const user = child.val();
+            let option = document.createElement("option");
+            option.value = user.chatId; // Telegram ID
+            option.text = user.name; // Foydalanuvchi ismi
+            select.appendChild(option);
           });
-        });
+        }
+      });
+
+      // 4. YUKNI YUBORISH FUNKSIYASI
+      async function sendToZavod() {
+        const destination = document
+          .getElementById("log-destination")
+          .value.trim();
+        const chatId = document.getElementById("log-mijoz-select").value;
+        const qty = parseFloat(document.getElementById("log-qty").value);
+        const car =
+          document.getElementById("log-car").value.trim() || "Noma'lum";
+        const driverPhone =
+          document.getElementById("log-driver-phone").value.trim() || "yoq";
+
+        if (!destination || !chatId || isNaN(qty) || qty <= 0) {
+          alert("Iltimos, barcha maydonlarni to'ldiring!");
+          return;
+        }
+
+        // Qoldiqni tekshirish
+        const stockSnap = await stockRef.once("value");
+        const currentStock = parseFloat(stockSnap.val()) || 0;
+        if (qty > currentStock) {
+          alert("Omborda yetarli mahsulot yo'q! Mavjud: " + currentStock);
+          return;
+        }
+
+        // Yangi yuk ID'si yaratish
+        const newShipRef = db.ref("asmo_zavod_shippings").push();
+        const shippingId = newShipRef.key;
+
+        const shippingData = {
+          product: filterName,
+          zavod: destination,
+          qty: qty,
+          car: car,
+          driverPhone: driverPhone,
+          chatId: chatId,
+          status: "onway",
+          time: new Date().toLocaleString("uz-UZ", {
+            hour12: false,
+            timeZone: "Asia/Tashkent",
+          }),
+          timestamp: Date.now(),
+        };
+
+        try {
+          // A. Bazaga saqlash
+          await newShipRef.set(shippingData);
+          // B. Ombor qoldig'ini kamaytirish
+          await stockRef.set(currentStock - qty);
+          // C. Botga (Google Script) signal yuborish
+          const scriptUrl =
+            "https://script.google.com/macros/s/AKfycbzoq3x24bJT0E51mH754uh4wC6BZY1b-eYHdpIo8l8EkTlVLm23vb-M6P0bEOPCBVYzDg/exec";
+          const params = `?product=${encodeURIComponent(
+            filterName
+          )}&zavod=${encodeURIComponent(
+            destination
+          )}&qty=${qty}&car=${encodeURIComponent(
+            car
+          )}&driverPhone=${encodeURIComponent(
+            driverPhone
+          )}&chatId=${chatId}&shippingId=${shippingId}`;
+
+          fetch(scriptUrl + params, { mode: "no-cors" });
+
+          alert("✅ Yuk yuborildi va botga xabar ketdi!");
+
+          // Formani tozalash
+          document.getElementById("log-destination").value = "";
+          document.getElementById("log-qty").value = "";
+          document.getElementById("log-car").value = "";
+          document.getElementById("log-driver-phone").value = "";
+          document.getElementById("log-mijoz-select").selectedIndex = 0;
+        } catch (e) {
+          alert("Xatolik yuz berdi: " + e.message);
+        }
       }
     </script>
   </body>
