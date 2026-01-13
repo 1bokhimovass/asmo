@@ -38,37 +38,67 @@
         font-weight: bold;
         color: #555;
       }
+
+      /* --- OPTION/SELECT TO'G'IRLASH --- */
+      .gore-item-select {
+        appearance: auto !important; /* Standart mobil ko'rinish uchun */
+        padding: 8px 12px !important;
+        font-size: 0.95rem !important;
+        border-radius: 8px !important;
+        cursor: pointer;
+      }
+
       .price-auto {
         background-color: #e9ecef !important;
         font-weight: bold;
         color: #d63384 !important;
       }
+
+      /* --- JADVALDAGI ZICHLIKNI YO'QOTISH --- */
       .table-custom {
         background: white;
         border-radius: 15px;
         overflow: hidden;
       }
-      /* Rasmda ko'rsatilgan yozuv uslublari */
+      .table-custom tbody tr td {
+        padding-top: 15px !important;
+        padding-bottom: 15px !important;
+        vertical-align: middle;
+        border-bottom: 1px solid #eee;
+      }
+
       .text-qty {
         color: #007f5f;
         font-weight: bold;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
       }
       .text-code-size {
         color: #6c757d;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        display: block;
+        margin-top: 2px;
       }
       .text-total {
         color: #2b6cb0;
         font-weight: bold;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
+        display: block;
+      }
+      .batch-id {
+        font-weight: bold;
+        color: #333;
+        display: block;
+      }
+      .time-small {
+        font-size: 0.75rem;
+        color: #888;
       }
     </style>
   </head>
   <body>
     <div class="container py-4">
       <div class="row justify-content-center">
-        <div class="col-12 col-md-9 col-lg-8">
+        <div class="col-12 col-md-10">
           <div class="card card-form p-4 mb-4">
             <h4 class="text-center fw-bold mb-4 text-primary">
               🏗️ GORE-TEX ISHLAB CHIQARISH
@@ -146,7 +176,7 @@
                 <tr>
                   <th>Batch / Vaqt</th>
                   <th>Miqdor x Narx</th>
-                  <th>Jami Summa</th>
+                  <th class="text-end">Jami Summa</th>
                 </tr>
               </thead>
               <tbody id="archive-table"></tbody>
@@ -269,15 +299,20 @@
                     maximumFractionDigits: 2,
                   });
 
-                  // Jadvaldagi ko'rinishni rasmga asosan o'zgartiramiz
                   table.innerHTML += `
                     <tr>
-                        <td><b>${item.batch}</b><br><small class="text-muted">${item.time}</small></td>
+                        <td>
+                          <span class="batch-id">${item.batch}</span>
+                          <span class="time-small">${item.time}</span>
+                        </td>
                         <td>
                             <span class="text-qty">${item.qty} dona</span> x ${item.price}<br>
                             <span class="text-code-size">${item.code} / ${item.size}</span>
                         </td>
-                        <td class="text-total text-nowrap">${formatSumma} so'm</td>
+                        <td class="text-end">
+                          <span class="text-total">${formatSumma}</span>
+                          <small class="text-muted" style="font-size:0.7rem">so'm</small>
+                        </td>
                     </tr>`;
                 });
             }
