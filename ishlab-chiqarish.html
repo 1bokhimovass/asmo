@@ -14,7 +14,6 @@
     <style>
       :root {
         --bg-color: #f8f9fa;
-        --card-bg: #ffffff;
       }
       body {
         background-color: var(--bg-color);
@@ -33,65 +32,19 @@
         margin-bottom: 15px;
         border-left: 5px solid #0d6efd;
       }
-      .form-label {
-        font-size: 0.8rem;
-        font-weight: bold;
-        color: #555;
-      }
-
-      /* --- OPTION/SELECT TO'G'IRLASH --- */
-      .gore-item-select {
-        appearance: auto !important; /* Standart mobil ko'rinish uchun */
-        padding: 8px 12px !important;
-        font-size: 0.95rem !important;
-        border-radius: 8px !important;
-        cursor: pointer;
-      }
-
       .price-auto {
         background-color: #e9ecef !important;
         font-weight: bold;
         color: #d63384 !important;
       }
-
-      /* --- JADVALDAGI ZICHLIKNI YO'QOTISH --- */
       .table-custom {
         background: white;
         border-radius: 15px;
         overflow: hidden;
       }
-      .table-custom tbody tr td {
-        padding-top: 15px !important;
-        padding-bottom: 15px !important;
-        vertical-align: middle;
-        border-bottom: 1px solid #eee;
-      }
-
       .text-qty {
         color: #007f5f;
         font-weight: bold;
-        font-size: 1.05rem;
-      }
-      .text-code-size {
-        color: #6c757d;
-        font-size: 0.85rem;
-        display: block;
-        margin-top: 2px;
-      }
-      .text-total {
-        color: #2b6cb0;
-        font-weight: bold;
-        font-size: 1.05rem;
-        display: block;
-      }
-      .batch-id {
-        font-weight: bold;
-        color: #333;
-        display: block;
-      }
-      .time-small {
-        font-size: 0.75rem;
-        color: #888;
       }
     </style>
   </head>
@@ -100,12 +53,14 @@
       <div class="row justify-content-center">
         <div class="col-12 col-md-10">
           <div class="card card-form p-4 mb-4">
-            <h4 class="text-center fw-bold mb-4 text-primary">
-              🏗️ GORE-TEX ISHLAB CHIQARISH
+            <h4 class="text-center fw-bold mb-4 text-primary" id="page-title">
+              🏗️ ISHLAB CHIQARISH
             </h4>
 
             <div class="mb-3">
-              <label class="form-label">Partiya raqami (Batch ID)</label>
+              <label class="form-label fw-bold small"
+                >Partiya raqami (Batch ID)</label
+              >
               <input
                 type="text"
                 id="batch_id"
@@ -116,10 +71,12 @@
 
             <div id="dynamic_rows_container">
               <div class="dynamic-row">
-                <div class="mb-2">
-                  <label class="form-label">O'lcham va Kodni tanlang</label>
+                <div class="mb-2 size-select-box">
+                  <label class="form-label fw-bold small"
+                    >O'lcham va Kodni tanlang</label
+                  >
                   <select
-                    class="form-select gore-item-select fw-bold"
+                    class="form-select item-select fw-bold"
                     onchange="handleSizeChange(this)"
                   >
                     <option value="" disabled selected hidden>
@@ -134,21 +91,23 @@
                     <option value="27.27mm|VE2084">27.27mm - VE2084</option>
                   </select>
                 </div>
+
                 <div class="row g-2">
                   <div class="col-6">
-                    <label class="form-label">Miqdori (dona)</label>
+                    <label class="form-label small fw-bold"
+                      >Miqdori (dona)</label
+                    >
                     <input
                       type="number"
-                      class="form-control gore-item-qty fw-bold border-success"
+                      class="form-control item-qty fw-bold border-success"
                       placeholder="0"
                     />
                   </div>
                   <div class="col-6">
-                    <label class="form-label">Dona narxi (Aniq)</label>
+                    <label class="form-label small fw-bold">Dona narxi</label>
                     <input
-                      type="text"
-                      class="form-control gore-item-price price-auto"
-                      readonly
+                      type="number"
+                      class="form-control item-price"
                       placeholder="0.00"
                     />
                   </div>
@@ -157,10 +116,11 @@
             </div>
 
             <button
-              class="btn btn-outline-primary btn-sm w-100 mb-4 fw-bold"
+              id="add-row-btn"
+              class="btn btn-outline-primary btn-sm w-100 mb-3 fw-bold"
               onclick="addNewRow()"
             >
-              + YANA RAZMER QO'SHISH
+              + YANA QO'SHISH
             </button>
             <button
               class="btn btn-success btn-lg w-100 fw-bold shadow"
@@ -170,18 +130,16 @@
             </button>
           </div>
 
-          <div class="table-responsive">
-            <table class="table table-custom align-middle shadow-sm">
-              <thead class="table-dark">
-                <tr>
-                  <th>Batch / Vaqt</th>
-                  <th>Miqdor x Narx</th>
-                  <th class="text-end">Jami Summa</th>
-                </tr>
-              </thead>
-              <tbody id="archive-table"></tbody>
-            </table>
-          </div>
+          <table class="table table-custom align-middle shadow-sm">
+            <thead class="table-dark">
+              <tr>
+                <th>Batch / Vaqt</th>
+                <th>Ma'lumot</th>
+                <th class="text-end">Summa</th>
+              </tr>
+            </thead>
+            <tbody id="archive-table"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -195,85 +153,94 @@
         "27.27mm|VE2084": 4353.73,
       };
 
+      const savedTitle = (
+        localStorage.getItem("activeSubTitle") || ""
+      ).toUpperCase();
+      const isGore = savedTitle.includes("GORE");
+      let filterName = isGore
+        ? "GORE-TEX PATCH"
+        : savedTitle.includes("LED")
+        ? "LED PCB"
+        : "AVTO SWITCH";
+
+      document.getElementById("page-title").innerText =
+        "🏗️ " + filterName + " ISHLAB CHIQARISH";
+
+      // Sahifa yuklanganda Gore bo'lmasa Selectlarni yashirish va narxni ochish
+      function setupUI() {
+        const rows = document.querySelectorAll(".dynamic-row");
+        rows.forEach((row) => {
+          const selectBox = row.querySelector(".size-select-box");
+          const priceInput = row.querySelector(".item-price");
+          if (!isGore) {
+            selectBox.style.display = "none";
+            priceInput.classList.remove("price-auto");
+            priceInput.readOnly = false;
+          } else {
+            priceInput.classList.add("price-auto");
+            priceInput.readOnly = true;
+          }
+        });
+      }
+
       function handleSizeChange(selectElement) {
+        if (!isGore) return;
         const row = selectElement.closest(".dynamic-row");
-        const priceInput = row.querySelector(".gore-item-price");
-        priceInput.value = gorePrices[selectElement.value] || "";
+        row.querySelector(".item-price").value =
+          gorePrices[selectElement.value] || "";
       }
 
       function addNewRow() {
         const container = document.getElementById("dynamic_rows_container");
         const div = document.createElement("div");
         div.className = "dynamic-row";
-        div.innerHTML = `
-            <div class="mb-2">
-                <label class="form-label">O'lcham va Kodni tanlang</label>
-                <select class="form-select gore-item-select fw-bold" onchange="handleSizeChange(this)">
-                    <option value="" disabled selected hidden>-- Tanlang --</option>
-                    <option value="12.7mm|VE0017GMK">12.7mm - VE0017GMK</option>
-                    <option value="12.7mm|VE001VAP">12.7mm - VE001VAP</option>
-                    <option value="19.5mm|VE2004">19.5mm - VE2004</option>
-                    <option value="40.20mm|VE0020GMC">40.20mm - VE0020GMC</option>
-                    <option value="27.27mm|VE2084">27.27mm - VE2084</option>
-                </select>
-            </div>
-            <div class="row g-2">
-                <div class="col-6">
-                    <label class="form-label">Miqdori (dona)</label>
-                    <input type="number" class="form-control gore-item-qty fw-bold border-success" placeholder="0">
-                </div>
-                <div class="col-6">
-                    <label class="form-label">Dona narxi (Aniq)</label>
-                    <input type="text" class="form-control gore-item-price price-auto" readonly placeholder="0.00">
-                </div>
-            </div>`;
+        div.innerHTML = container.firstElementChild.innerHTML;
         container.appendChild(div);
+        setupUI();
       }
 
       async function saveAll() {
         const batch = document.getElementById("batch_id").value.trim();
-        if (!batch) return alert("Partiya raqamini kiriting!");
+        if (!batch) return alert("Batch ID kiriting!");
 
-        const selects = document.querySelectorAll(".gore-item-select");
-        const qtys = document.querySelectorAll(".gore-item-qty");
-        const prices = document.querySelectorAll(".gore-item-price");
-
-        let records = [];
-        for (let i = 0; i < selects.length; i++) {
-          if (selects[i].value && qtys[i].value > 0) {
-            const [size, code] = selects[i].value.split("|");
-            const price = parseFloat(prices[i].value);
-            const qty = parseInt(qtys[i].value);
-            const jami = (qty * price).toFixed(2);
-
-            records.push({
-              size,
-              code,
-              qty,
-              price,
-              jami_summa: parseFloat(jami),
-            });
-          }
-        }
-
-        if (records.length === 0) return alert("Ma'lumotlar chala!");
-
-        const timeNow = new Date().toLocaleString("uz-UZ", {
-          hour: "2-digit",
-          minute: "2-digit",
-          day: "2-digit",
-          month: "2-digit",
-        });
+        const rows = document.querySelectorAll(".dynamic-row");
+        const timeNow = new Date().toLocaleString("uz-UZ");
 
         try {
-          for (let rec of records) {
-            await db.ref("asmo_all_history").push({
-              product: "GORE-TEX PATCH",
-              batch,
-              ...rec,
-              time: timeNow,
-              timestamp: Date.now(),
-            });
+          for (let row of rows) {
+            const select = row.querySelector(".item-select");
+            const qty = parseInt(row.querySelector(".item-qty").value);
+            const price = parseFloat(row.querySelector(".item-price").value);
+
+            if (qty > 0 && price > 0) {
+              let size = "",
+                code = "",
+                safeKey = "stock_gen_" + filterName.replace(/\s+/g, "_");
+
+              if (isGore && select.value) {
+                [size, code] = select.value.split("|");
+                safeKey =
+                  "stock_gore_" + size.replace(/[.|]/g, "_") + "_" + code;
+              }
+
+              const data = {
+                product: filterName,
+                batch,
+                size,
+                code,
+                qty,
+                price,
+                jami_summa: qty * price,
+                time: timeNow,
+                timestamp: Date.now(),
+              };
+
+              await db.ref("asmo_all_history").push(data);
+              await db
+                .ref("asmo_inventory_balance")
+                .child(safeKey)
+                .transaction((c) => (c || 0) + qty);
+            }
           }
           alert("✅ Saqlandi!");
           location.reload();
@@ -288,38 +255,34 @@
           .on("value", (snap) => {
             const table = document.getElementById("archive-table");
             table.innerHTML = "";
-            const data = snap.val();
-            if (data) {
-              Object.values(data)
-                .filter((i) => i.product === "GORE-TEX PATCH")
+            if (snap.exists()) {
+              Object.values(snap.val())
                 .reverse()
                 .forEach((item) => {
-                  const formatSumma = item.jami_summa.toLocaleString("uz-UZ", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  });
-
-                  table.innerHTML += `
-                    <tr>
-                        <td>
-                          <span class="batch-id">${item.batch}</span>
-                          <span class="time-small">${item.time}</span>
-                        </td>
-                        <td>
-                            <span class="text-qty">${item.qty} dona</span> x ${item.price}<br>
-                            <span class="text-code-size">${item.code} / ${item.size}</span>
-                        </td>
-                        <td class="text-end">
-                          <span class="text-total">${formatSumma}</span>
-                          <small class="text-muted" style="font-size:0.7rem">so'm</small>
-                        </td>
-                    </tr>`;
+                  if (item.product === filterName) {
+                    const info = isGore
+                      ? `${item.code} / ${item.size}`
+                      : item.product;
+                    table.innerHTML += `
+                  <tr>
+                    <td><b>${item.batch}</b><br><small class="text-muted">${
+                      item.time
+                    }</small></td>
+                    <td><span class="text-qty">${
+                      item.qty
+                    } dona</span><br><small>${info}</small></td>
+                    <td class="text-end"><b>${item.jami_summa.toLocaleString()}</b> so'm</td>
+                  </tr>`;
+                  }
                 });
             }
           });
       }
 
-      window.onload = loadRecords;
+      window.onload = () => {
+        setupUI();
+        loadRecords();
+      };
     </script>
   </body>
 </html>
