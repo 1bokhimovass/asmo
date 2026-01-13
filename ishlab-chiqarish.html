@@ -2,10 +2,7 @@
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ishlab chiqarish - ASMO AVTO</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -13,191 +10,142 @@
     />
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="config.js"></script>
-
     <style>
       :root {
         --bg-color: #f8f9fa;
         --card-bg: #ffffff;
-        --text-color: #333;
-      }
-      [data-theme="dark"] {
-        --bg-color: #121212;
-        --card-bg: #1e1e1e;
-        --text-color: #e0e0e0;
       }
       body {
         background-color: var(--bg-color);
-        color: var(--text-color);
         font-family: "Segoe UI", sans-serif;
         padding-bottom: 50px;
-        transition: 0.3s;
-      }
-      .header-fixed {
-        position: sticky;
-        top: 0;
-        background: var(--card-bg);
-        z-index: 1000;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        padding: 12px 0;
-      }
-      .back-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 42px;
-        height: 42px;
-        background: var(--card-bg);
-        color: var(--text-color);
-        text-decoration: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        border: none;
-        margin-right: 15px;
       }
       .card-form {
         border-radius: 20px;
         border: none;
-        background: var(--card-bg);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       }
-      .form-control {
-        background: transparent;
-        color: var(--text-color);
-        border: 1px solid #ced4da;
+      .dynamic-row {
+        background: #f1f3f5;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 5px solid #0d6efd;
       }
-      .form-control:focus {
-        background: transparent;
-        color: var(--text-color);
+      .form-label {
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: #555;
       }
-
-      @media (max-width: 768px) {
-        .table-responsive thead {
-          display: none;
-        }
-        .table-responsive tr {
-          display: block;
-          margin-bottom: 15px;
-          background: var(--card-bg);
-          border-radius: 15px;
-          padding: 10px;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        .table-responsive td {
-          display: flex;
-          justify-content: space-between;
-          border: none;
-          padding: 5px 10px;
-          font-size: 0.9rem;
-        }
-        .table-responsive td::before {
-          content: attr(data-label);
-          font-weight: bold;
-          color: #777;
-        }
+      .price-auto {
+        background-color: #e9ecef !important;
+        font-weight: bold;
+        color: #d63384 !important;
+      }
+      .table-custom {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+      }
+      /* Rasmda ko'rsatilgan yozuv uslublari */
+      .text-qty {
+        color: #007f5f;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+      .text-code-size {
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+      .text-total {
+        color: #2b6cb0;
+        font-weight: bold;
+        font-size: 1.1rem;
       }
     </style>
   </head>
   <body>
-    <header class="header-fixed shadow-sm">
-      <div class="container d-flex align-items-center">
-        <a href="index.html" class="back-btn">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
-            />
-          </svg>
-        </a>
-        <h5 class="fw-bold mb-0">
-          🏗️ <span id="page-title">Yuklanmoqda...</span>
-        </h5>
-      </div>
-    </header>
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-9 col-lg-8">
+          <div class="card card-form p-4 mb-4">
+            <h4 class="text-center fw-bold mb-4 text-primary">
+              🏗️ GORE-TEX ISHLAB CHIQARISH
+            </h4>
 
-    <div class="container py-3">
-      <div class="row">
-        <div class="col-12 col-lg-4 mb-4">
-          <div class="card card-form p-3">
-            <h5 class="fw-bold text-center mb-3">Ma'lumot Kiritish</h5>
-            <div class="row g-2">
-              <div class="col-6">
-                <label class="form-label fw-bold small"
-                  >Partiya (Batch ID)</label
-                >
-                <input
-                  type="text"
-                  id="batch_id"
-                  class="form-control"
-                  placeholder="#P-2025"
-                />
-              </div>
-              <div class="col-6">
-                <label class="form-label fw-bold small text-success"
-                  >Tayyor (dona)</label
-                >
-                <input
-                  type="number"
-                  id="prod_qty"
-                  class="form-control border-success"
-                  oninput="autoCalculateLED()"
-                />
-              </div>
+            <div class="mb-3">
+              <label class="form-label">Partiya raqami (Batch ID)</label>
+              <input
+                type="text"
+                id="batch_id"
+                class="form-control fw-bold border-primary"
+                placeholder="#P-2026"
+              />
+            </div>
 
-              <div id="led_inputs" style="display: none">
-                <div class="col-12 mt-2">
-                  <label class="form-label fw-bold small text-primary"
-                    >Ishchi soni</label
+            <div id="dynamic_rows_container">
+              <div class="dynamic-row">
+                <div class="mb-2">
+                  <label class="form-label">O'lcham va Kodni tanlang</label>
+                  <select
+                    class="form-select gore-item-select fw-bold"
+                    onchange="handleSizeChange(this)"
                   >
-                  <input
-                    type="number"
-                    id="worker_count"
-                    class="form-control border-primary"
-                    value="3"
-                    oninput="autoCalculateLED()"
-                  />
+                    <option value="" disabled selected hidden>
+                      -- Tanlang --
+                    </option>
+                    <option value="12.7mm|VE0017GMK">12.7mm - VE0017GMK</option>
+                    <option value="12.7mm|VE001VAP">12.7mm - VE001VAP</option>
+                    <option value="19.5mm|VE2004">19.5mm - VE2004</option>
+                    <option value="40.20mm|VE0020GMC">
+                      40.20mm - VE0020GMC
+                    </option>
+                    <option value="27.27mm|VE2084">27.27mm - VE2084</option>
+                  </select>
+                </div>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label">Miqdori (dona)</label>
+                    <input
+                      type="number"
+                      class="form-control gore-item-qty fw-bold border-success"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">Dona narxi (Aniq)</label>
+                    <input
+                      type="text"
+                      class="form-control gore-item-price price-auto"
+                      readonly
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
               </div>
-
-              <div class="col-12 mt-2">
-                <label class="form-label fw-bold small text-muted"
-                  >1 mahsulot narxi (ming so'mda)</label
-                >
-                <input
-                  type="number"
-                  step="0.1"
-                  id="unit_price_input"
-                  class="form-control fw-bold"
-                  placeholder="Masalan: 50.5"
-                />
-              </div>
             </div>
+
             <button
-              class="btn btn-primary w-100 fw-bold shadow mt-4"
-              onclick="addRecord()"
+              class="btn btn-outline-primary btn-sm w-100 mb-4 fw-bold"
+              onclick="addNewRow()"
             >
-              SAQLASH
+              + YANA RAZMER QO'SHISH
+            </button>
+            <button
+              class="btn btn-success btn-lg w-100 fw-bold shadow"
+              onclick="saveAll()"
+            >
+              ✅ BARCHASINI SAQLASH
             </button>
           </div>
-        </div>
 
-        <div class="col-12 col-lg-8">
-          <h6 class="fw-bold mb-3 text-uppercase text-muted">
-            📜 Oxirgi amallar
-          </h6>
           <div class="table-responsive">
-            <table class="table align-middle">
-              <thead class="table-light">
-                <tr id="table-head-row">
-                  <th>Vaqt / Batch</th>
-                  <th>Tayyor</th>
+            <table class="table table-custom align-middle shadow-sm">
+              <thead class="table-dark">
+                <tr>
+                  <th>Batch / Vaqt</th>
+                  <th>Miqdor x Narx</th>
                   <th>Jami Summa</th>
                 </tr>
               </thead>
@@ -209,115 +157,102 @@
     </div>
 
     <script>
-      let currentProduct = "";
-      let globalSettings = {};
-      const savedType = localStorage.getItem("selectedProduct");
-
-      // 1. Firebase'dan dinamik sozlamalarni olish
-      db.ref("asmo_settings").on("value", (snap) => {
-        globalSettings = snap.val() || {
-          led_worker_wage: 110000,
-          led_mat_coeff: 0.06,
-          led_extra_cost: 177,
-        };
-        autoCalculateLED();
-      });
-
-      // 2. Sahifa yuklanganda mavzuni (Dark Mode) tekshirish
-      if (localStorage.getItem("theme") === "dark") {
-        document.documentElement.setAttribute("data-theme", "dark");
-      }
-
-      window.onload = function () {
-        const ledInputs = document.getElementById("led_inputs");
-        const tableHead = document.getElementById("table-head-row");
-
-        if (savedType === "LED") {
-          currentProduct = "LED PCB";
-          ledInputs.style.display = "block";
-          if (!tableHead.innerHTML.includes("Jami Xarajat")) {
-            tableHead.innerHTML += `<th>Jami Xarajat</th>`;
-          }
-        } else {
-          currentProduct =
-            savedType === "Gore" ? "GORE-TEX PATCH" : "AVTO SWITCH";
-        }
-        document.getElementById("page-title").innerText = currentProduct;
-        loadLastRecords();
+      const gorePrices = {
+        "12.7mm|VE0017GMK": 1273.68,
+        "12.7mm|VE001VAP": 1188.81,
+        "19.5mm|VE2004": 3134.15,
+        "40.20mm|VE0020GMC": 4539.11,
+        "27.27mm|VE2084": 4353.73,
       };
 
-      // 3. Avtomatik hisoblash (Parda ortidagi kalkulyator)
-      function autoCalculateLED() {
-        if (currentProduct !== "LED PCB" || !globalSettings.led_worker_wage)
-          return;
-
-        const qty = parseInt(document.getElementById("prod_qty").value) || 0;
-        const workers =
-          parseInt(document.getElementById("worker_count").value) || 0;
-
-        if (qty > 0) {
-          const grandTotal =
-            workers * globalSettings.led_worker_wage +
-            qty * globalSettings.led_mat_coeff * 500 +
-            qty * globalSettings.led_extra_cost;
-
-          document.getElementById("unit_price_input").value = (
-            grandTotal /
-            qty /
-            1000
-          ).toFixed(1);
-        }
+      function handleSizeChange(selectElement) {
+        const row = selectElement.closest(".dynamic-row");
+        const priceInput = row.querySelector(".gore-item-price");
+        priceInput.value = gorePrices[selectElement.value] || "";
       }
 
-      // 4. Ma'lumotni bazaga yozish
-      function addRecord() {
-        const qty = parseInt(document.getElementById("prod_qty").value);
+      function addNewRow() {
+        const container = document.getElementById("dynamic_rows_container");
+        const div = document.createElement("div");
+        div.className = "dynamic-row";
+        div.innerHTML = `
+            <div class="mb-2">
+                <label class="form-label">O'lcham va Kodni tanlang</label>
+                <select class="form-select gore-item-select fw-bold" onchange="handleSizeChange(this)">
+                    <option value="" disabled selected hidden>-- Tanlang --</option>
+                    <option value="12.7mm|VE0017GMK">12.7mm - VE0017GMK</option>
+                    <option value="12.7mm|VE001VAP">12.7mm - VE001VAP</option>
+                    <option value="19.5mm|VE2004">19.5mm - VE2004</option>
+                    <option value="40.20mm|VE0020GMC">40.20mm - VE0020GMC</option>
+                    <option value="27.27mm|VE2084">27.27mm - VE2084</option>
+                </select>
+            </div>
+            <div class="row g-2">
+                <div class="col-6">
+                    <label class="form-label">Miqdori (dona)</label>
+                    <input type="number" class="form-control gore-item-qty fw-bold border-success" placeholder="0">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Dona narxi (Aniq)</label>
+                    <input type="text" class="form-control gore-item-price price-auto" readonly placeholder="0.00">
+                </div>
+            </div>`;
+        container.appendChild(div);
+      }
+
+      async function saveAll() {
         const batch = document.getElementById("batch_id").value.trim();
-        const priceInput =
-          parseFloat(document.getElementById("unit_price_input").value) || 0;
-        const workers =
-          parseInt(document.getElementById("worker_count")?.value) || 0;
+        if (!batch) return alert("Partiya raqamini kiriting!");
 
-        if (!batch || !qty) return alert("Ma'lumotlarni to'liq kiriting!");
+        const selects = document.querySelectorAll(".gore-item-select");
+        const qtys = document.querySelectorAll(".gore-item-qty");
+        const prices = document.querySelectorAll(".gore-item-price");
 
-        const realUnitPrice = priceInput * 1000;
-        const jamiSumma = qty * realUnitPrice;
+        let records = [];
+        for (let i = 0; i < selects.length; i++) {
+          if (selects[i].value && qtys[i].value > 0) {
+            const [size, code] = selects[i].value.split("|");
+            const price = parseFloat(prices[i].value);
+            const qty = parseInt(qtys[i].value);
+            const jami = (qty * price).toFixed(2);
 
-        let jamiXarajat = 0;
-        if (currentProduct === "LED PCB") {
-          jamiXarajat =
-            workers * globalSettings.led_worker_wage +
-            qty * globalSettings.led_mat_coeff * 500 +
-            qty * globalSettings.led_extra_cost;
+            records.push({
+              size,
+              code,
+              qty,
+              price,
+              jami_summa: parseFloat(jami),
+            });
+          }
         }
 
-        const record = {
-          time: new Date().toLocaleString("uz-UZ", {
-            hour: "2-digit",
-            minute: "2-digit",
-            day: "2-digit",
-            month: "2-digit",
-          }),
-          product: currentProduct,
-          batch: batch,
-          qty: qty,
-          jami_summa: Math.round(jamiSumma),
-          jami_xarajat: Math.round(jamiXarajat),
-          timestamp: Date.now(),
-        };
+        if (records.length === 0) return alert("Ma'lumotlar chala!");
 
-        db.ref("asmo_all_history")
-          .push(record)
-          .then(() => {
-            alert("Saqlandi! Jami: " + jamiSumma.toLocaleString() + " so'm");
-            document.getElementById("prod_qty").value = "";
-            document.getElementById("batch_id").value = "";
-            document.getElementById("unit_price_input").value = "";
-          });
+        const timeNow = new Date().toLocaleString("uz-UZ", {
+          hour: "2-digit",
+          minute: "2-digit",
+          day: "2-digit",
+          month: "2-digit",
+        });
+
+        try {
+          for (let rec of records) {
+            await db.ref("asmo_all_history").push({
+              product: "GORE-TEX PATCH",
+              batch,
+              ...rec,
+              time: timeNow,
+              timestamp: Date.now(),
+            });
+          }
+          alert("✅ Saqlandi!");
+          location.reload();
+        } catch (e) {
+          alert("Xatolik: " + e.message);
+        }
       }
 
-      // 5. Tarixni yuklash
-      function loadLastRecords() {
+      function loadRecords() {
         db.ref("asmo_all_history")
           .limitToLast(20)
           .on("value", (snap) => {
@@ -326,32 +261,30 @@
             const data = snap.val();
             if (data) {
               Object.values(data)
-                .filter((i) => i.product === currentProduct)
+                .filter((i) => i.product === "GORE-TEX PATCH")
                 .reverse()
                 .forEach((item) => {
-                  let rowHtml = `
-                  <tr>
-                    <td data-label="Vaqt/Batch"><b>${
-                      item.batch
-                    }</b><br><small class="text-muted">${item.time}</small></td>
-                    <td data-label="Tayyor" class="text-success fw-bold">${
-                      item.qty
-                    } dona</td>
-                    <td data-label="Jami Summa" class="text-primary fw-bold">${(
-                      item.jami_summa || 0
-                    ).toLocaleString()} so'm</td>`;
+                  const formatSumma = item.jami_summa.toLocaleString("uz-UZ", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  });
 
-                  if (currentProduct === "LED PCB") {
-                    rowHtml += `<td data-label="Jami Xarajat" class="text-muted">${(
-                      item.jami_xarajat || 0
-                    ).toLocaleString()} so'm</td>`;
-                  }
-                  rowHtml += `</tr>`;
-                  table.innerHTML += rowHtml;
+                  // Jadvaldagi ko'rinishni rasmga asosan o'zgartiramiz
+                  table.innerHTML += `
+                    <tr>
+                        <td><b>${item.batch}</b><br><small class="text-muted">${item.time}</small></td>
+                        <td>
+                            <span class="text-qty">${item.qty} dona</span> x ${item.price}<br>
+                            <span class="text-code-size">${item.code} / ${item.size}</span>
+                        </td>
+                        <td class="text-total text-nowrap">${formatSumma} so'm</td>
+                    </tr>`;
                 });
             }
           });
       }
+
+      window.onload = loadRecords;
     </script>
   </body>
 </html>
