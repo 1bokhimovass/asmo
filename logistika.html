@@ -17,271 +17,274 @@
         background-color: #f4f7f6;
         font-family: "Segoe UI", sans-serif;
       }
-      .log-card {
+      .logistics-card {
+        max-width: 600px;
+        margin: 30px auto;
         border-radius: 20px;
         border: none;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        background: white;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       }
-      .btn-send {
-        background: #6f42c1;
-        color: white;
-        font-weight: bold;
-        padding: 14px;
+      .item-row {
+        background: #f8f9fa;
         border-radius: 12px;
-        transition: 0.3s;
-        border: none;
-      }
-      .btn-send:hover {
-        background: #5a32a3;
-        transform: translateY(-2px);
-      }
-      .back-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 42px;
-        height: 42px;
-        background: white;
-        color: #333;
-        text-decoration: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 5px solid #6f42c1;
       }
       .stock-badge {
-        font-size: 0.9rem;
-        padding: 8px 15px;
-        border-radius: 10px;
-        background: #eef2ff;
-        color: #4338ca;
-        border: 1px solid #c7d2fe;
-      }
-      .text-purple {
+        background: #e9ecef;
         color: #6f42c1;
+        padding: 5px 15px;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
+      .is-invalid {
+        border: 2px solid #dc3545 !important;
       }
     </style>
   </head>
   <body>
-    <div class="container py-4">
-      <div class="d-flex align-items-center mb-4">
-        <a href="index.html" class="back-btn me-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 16 16"
+    <div class="container">
+      <div class="card logistics-card p-4">
+        <h3 class="text-center fw-bold" style="color: #6f42c1">
+          YUKNI YUBORISH
+        </h3>
+        <p class="text-center text-muted small">
+          TANLANGAN BO'LIM: <br /><b class="text-dark" id="display-product-name"
+            >---</b
           >
-            <path
-              fill-rule="evenodd"
-              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
-            />
-          </svg>
-        </a>
-        <h4 class="fw-bold m-0">🚚 Logistika bo'limi</h4>
-      </div>
+        </p>
 
-      <div class="row justify-content-center">
-        <div class="col-md-6">
-          <div class="card log-card p-4">
-            <h5 class="fw-bold text-center mb-4 text-purple">YUKNI YUBORISH</h5>
+        <div class="text-center mb-4">
+          <span class="stock-badge"
+            >Ombor qoldig'i: <span id="total-stock">0</span> dona</span
+          >
+        </div>
 
-            <div class="mb-3 text-center">
-              <span class="small text-muted text-uppercase"
-                >Tanlangan mahsulot:</span
-              >
-              <h4 class="fw-bold" id="display-product-name">Yuklanmoqda...</h4>
-              <div class="stock-badge d-inline-block mt-2 fw-bold">
-                Ombor qoldig'i: <span id="current-stock">0</span> dona
-              </div>
-            </div>
+        <hr />
 
-            <hr />
-
-            <div class="mb-3">
-              <label class="form-label small fw-bold"
-                >Qayerga yuborilmoqda? (Zavod nomi)</label
-              >
-              <input
-                type="text"
-                id="log-destination"
-                class="form-control"
-                placeholder="Masalan: UZCHASIS"
-              />
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label small fw-bold"
-                >Mijozni tanlang (Ro'yxatdan o'tganlar)</label
-              >
-              <select
-                id="log-mijoz-select"
-                class="form-select text-primary fw-bold"
-              >
-                <option value="" disabled selected>
-                  -- Mijozni tanlang --
-                </option>
-              </select>
-            </div>
-
-            <div class="row">
-              <div class="col-6 mb-3">
-                <label class="form-label small fw-bold">Miqdor (dona)</label>
-                <input
-                  type="number"
-                  id="log-qty"
-                  class="form-control fw-bold"
-                  placeholder="0"
-                />
-              </div>
-              <div class="col-6 mb-3">
-                <label class="form-label small fw-bold">Mashina raqami</label>
-                <input
-                  type="text"
-                  id="log-car"
-                  class="form-control"
-                  placeholder="01 A 777 AA"
-                />
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label small fw-bold">Haydovchi tel</label>
-              <input
-                type="tel"
-                id="log-driver-phone"
-                class="form-control"
-                placeholder="+998"
-              />
-            </div>
-
-            <button
-              class="btn btn-send w-100 shadow-sm"
-              onclick="sendToZavod()"
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-bold"
+              >Qayerga? (Zavod nomi)</label
             >
-              YUKNI YUBORISH VA TASDIQLASH
-            </button>
+            <input
+              type="text"
+              id="destination"
+              class="form-control"
+              placeholder="Masalan: UZCHASIS"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-bold"
+              >Mijozni tanlang (Xabar uchun)</label
+            >
+            <select
+              id="client_select"
+              class="form-select border-primary text-primary fw-bold"
+            >
+              <option value="5672478726">Admin (Test)</option>
+              <option value="ID_RAQAMNI_YAZING">Mashkuraxon</option>
+            </select>
           </div>
         </div>
+
+        <div id="items-container"></div>
+
+        <button
+          id="add-item-btn"
+          class="btn btn-outline-secondary btn-sm w-100 mb-4"
+          onclick="addItemRow()"
+          style="display: none"
+        >
+          + YANA QO'SHISH
+        </button>
+
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <label class="form-label small fw-bold">Mashina raqami</label>
+            <input
+              type="text"
+              id="car_number"
+              class="form-control"
+              placeholder="01 A 777 AA"
+            />
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-bold">Haydovchi tel</label>
+            <input
+              type="text"
+              id="driver_phone"
+              class="form-control"
+              value="+998"
+            />
+          </div>
+        </div>
+
+        <button
+          class="btn btn-primary btn-lg w-100 fw-bold shadow"
+          onclick="sendCargo()"
+          style="background: #6f42c1; border: none"
+        >
+          YUKNI YUBORISH VA TASDIQLASH
+        </button>
       </div>
     </div>
 
     <script>
-      // 1. Mahsulot turini localStorage'dan aniqlash
       const savedTitle = (
         localStorage.getItem("activeSubTitle") || ""
       ).toUpperCase();
-      const savedType = localStorage.getItem("selectedProduct") || "";
+      const isGore = savedTitle.includes("GORE");
+      let currentProduct = isGore
+        ? "GORE-TEX PATCH"
+        : savedTitle.includes("LED")
+        ? "LED PCB"
+        : "AVTO SWITCH";
 
-      let filterName = "";
-      if (savedTitle.includes("GORE") || savedType === "Gore")
-        filterName = "GORE-TEX PATCH";
-      else if (savedTitle.includes("LED") || savedType === "LED")
-        filterName = "LED PCB";
-      else filterName = "AVTO SWITCH";
+      document.getElementById("display-product-name").innerText =
+        currentProduct;
+      if (isGore)
+        document.getElementById("add-item-btn").style.display = "block";
 
-      document.getElementById("display-product-name").innerText = filterName;
+      function addItemRow() {
+        const container = document.getElementById("items-container");
+        const div = document.createElement("div");
+        div.className = "item-row";
+        const sizeSelector = isGore
+          ? `
+            <label class="form-label small fw-bold">O'lcham va Kodni tanlang</label>
+            <select class="form-select item-type mb-2 fw-bold" onchange="updateRowStock(this)">
+                <option value="">-- Tanlang --</option>
+                <option value="12.7mm|VE0017GMK">12.7mm - VE0017GMK</option>
+                <option value="12.7mm|VE001VAP">12.7mm - VE001VAP</option>
+                <option value="19.5mm|VE2004">19.5mm - VE2004</option>
+                <option value="40.20mm|VE0020GMC">40.20mm - VE0020GMC</option>
+                <option value="27.27mm|VE2084">27.27mm - VE2084</option>
+            </select>`
+          : "";
 
-      // 2. Ombor qoldig'ini Firebase'dan o'qish
-      const stockRef = db.ref("asmo_tayyor_mahsulot_zaxirasi/" + filterName);
-      stockRef.on("value", (snap) => {
-        document.getElementById("current-stock").innerText = (
-          snap.val() || 0
-        ).toLocaleString();
-      });
+        div.innerHTML = `${sizeSelector}
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-bold mb-0">Yuboriladigan miqdor</label>
+                <small class="text-muted">Qoldiq: <span class="row-stock">0</span></small>
+            </div>
+            <input type="number" class="form-control item-qty fw-bold" placeholder="0" oninput="validateQty(this)">`;
+        container.appendChild(div);
+        if (!isGore) updateGeneralStock();
+      }
 
-      // 3. MIJOZLARNI BOT BAZASIDAN YUKLASH
-      db.ref("mijozlar").on("value", (snap) => {
-        const select = document.getElementById("log-mijoz-select");
-        select.innerHTML =
-          '<option value="" disabled selected>-- Mijozni tanlang --</option>';
-        if (snap.exists()) {
-          snap.forEach((child) => {
-            const user = child.val();
-            let option = document.createElement("option");
-            option.value = user.chatId; // Telegram ID
-            option.text = user.name; // Foydalanuvchi ismi
-            select.appendChild(option);
-          });
+      function updateGeneralStock() {
+        const safeKey = "stock_gen_" + currentProduct.replace(/\s+/g, "_");
+        db.ref("asmo_inventory_balance/" + safeKey).on("value", (snap) => {
+          const stock = snap.val() || 0;
+          document.getElementById("total-stock").innerText =
+            stock.toLocaleString();
+          document
+            .querySelectorAll(".row-stock")
+            .forEach((el) => (el.innerText = stock));
+        });
+      }
+
+      function updateRowStock(selectEl) {
+        if (!selectEl.value) return;
+        const row = selectEl.closest(".item-row");
+        const [size, code] = selectEl.value.split("|");
+        const safeKey = "stock_gore_" + size.replace(/[.|]/g, "_") + "_" + code;
+        db.ref("asmo_inventory_balance/" + safeKey).on("value", (snap) => {
+          row.querySelector(".row-stock").innerText = snap.val() || 0;
+        });
+      }
+
+      function validateQty(input) {
+        const row = input.closest(".item-row");
+        const stock = parseInt(row.querySelector(".row-stock").innerText) || 0;
+        input.classList.toggle("is-invalid", parseInt(input.value) > stock);
+      }
+
+      async function sendCargo() {
+        const dest = document.getElementById("destination").value.trim();
+        const car = document.getElementById("car_number").value.trim();
+        const phone = document.getElementById("driver_phone").value;
+        const targetChatId = document.getElementById("client_select").value;
+        const rows = document.querySelectorAll(".item-row");
+
+        const botWebAppLink =
+          "https://script.google.com/macros/s/AKfycbzHD-C6A_mUyxRPLOl1MW3OTtMkm-_swBz5Hg6A1mEVS-vWydXxspt7viH1JRt0Qi0dJg/exec";
+
+        if (!dest) return alert("Zavod nomini kiriting!");
+
+        let finalCargo = [];
+        for (let row of rows) {
+          const qtyVal = parseInt(row.querySelector(".item-qty").value);
+          const stockVal = parseInt(row.querySelector(".row-stock").innerText);
+
+          if (qtyVal > 0) {
+            if (qtyVal > stockVal)
+              return alert("Omborda yetarli mahsulot yo'q!");
+            let size = "",
+              code = "",
+              safeKey = "";
+            if (isGore) {
+              const select = row.querySelector(".item-type");
+              if (!select.value) continue;
+              [size, code] = select.value.split("|");
+              safeKey = "stock_gore_" + size.replace(/[.|]/g, "_") + "_" + code;
+            } else {
+              safeKey = "stock_gen_" + currentProduct.replace(/\s+/g, "_");
+            }
+            finalCargo.push({ size, code, qty: qtyVal, safeKey });
+          }
         }
-      });
 
-      // 4. YUKNI YUBORISH FUNKSIYASI
-      async function sendToZavod() {
-        const destination = document
-          .getElementById("log-destination")
-          .value.trim();
-        const chatId = document.getElementById("log-mijoz-select").value;
-        const qty = parseFloat(document.getElementById("log-qty").value);
-        const car =
-          document.getElementById("log-car").value.trim() || "Noma'lum";
-        const driverPhone =
-          document.getElementById("log-driver-phone").value.trim() || "yoq";
-
-        if (!destination || !chatId || isNaN(qty) || qty <= 0) {
-          alert("Iltimos, barcha maydonlarni to'ldiring!");
-          return;
-        }
-
-        // Qoldiqni tekshirish
-        const stockSnap = await stockRef.once("value");
-        const currentStock = parseFloat(stockSnap.val()) || 0;
-        if (qty > currentStock) {
-          alert("Omborda yetarli mahsulot yo'q! Mavjud: " + currentStock);
-          return;
-        }
-
-        // Yangi yuk ID'si yaratish
-        const newShipRef = db.ref("asmo_zavod_shippings").push();
-        const shippingId = newShipRef.key;
-
-        const shippingData = {
-          product: filterName,
-          zavod: destination,
-          qty: qty,
-          car: car,
-          driverPhone: driverPhone,
-          chatId: chatId,
-          status: "onway",
-          time: new Date().toLocaleString("uz-UZ", {
-            hour12: false,
-            timeZone: "Asia/Tashkent",
-          }),
-          timestamp: Date.now(),
-        };
+        if (finalCargo.length === 0) return alert("Miqdorni kiriting!");
 
         try {
-          // A. Bazaga saqlash
-          await newShipRef.set(shippingData);
-          // B. Ombor qoldig'ini kamaytirish
-          await stockRef.set(currentStock - qty);
-          // C. Botga (Google Script) signal yuborish
-          const scriptUrl =
-            "https://script.google.com/macros/s/AKfycbzoq3x24bJT0E51mH754uh4wC6BZY1b-eYHdpIo8l8EkTlVLm23vb-M6P0bEOPCBVYzDg/exec";
-          const params = `?product=${encodeURIComponent(
-            filterName
-          )}&zavod=${encodeURIComponent(
-            destination
-          )}&qty=${qty}&car=${encodeURIComponent(
-            car
-          )}&driverPhone=${encodeURIComponent(
-            driverPhone
-          )}&chatId=${chatId}&shippingId=${shippingId}`;
+          const timeNow = new Date().toLocaleString("uz-UZ");
+          for (let item of finalCargo) {
+            // 1. Firebasega yozish
+            const newRef = await db.ref("asmo_logistika_history").push({
+              product: currentProduct,
+              destination: dest,
+              car_number: car,
+              driver_phone: phone,
+              size: item.size,
+              code: item.code,
+              qty: item.qty,
+              time: timeNow,
+              timestamp: Date.now(),
+              status: "Yuborildi",
+            });
 
-          fetch(scriptUrl + params, { mode: "no-cors" });
+            // 2. Ombor qoldig'ini yangilash
+            await db
+              .ref("asmo_inventory_balance/" + item.safeKey)
+              .transaction((c) => (c || 0) - item.qty);
 
-          alert("✅ Yuk yuborildi va botga xabar ketdi!");
+            // 3. Botga xabar yuborish
+            const pName =
+              currentProduct + (item.size ? " (" + item.size + ")" : "");
+            const params = new URLSearchParams({
+              zavod: dest,
+              product: pName,
+              qty: item.qty,
+              car: car,
+              driverPhone: phone,
+              shippingId: newRef.key,
+              chatId: targetChatId,
+            });
 
-          // Formani tozalash
-          document.getElementById("log-destination").value = "";
-          document.getElementById("log-qty").value = "";
-          document.getElementById("log-car").value = "";
-          document.getElementById("log-driver-phone").value = "";
-          document.getElementById("log-mijoz-select").selectedIndex = 0;
+            fetch(`${botWebAppLink}?${params.toString()}`, { mode: "no-cors" });
+          }
+          alert("✅ Yuk muvaffaqiyatli yuborildi!");
+          location.reload();
         } catch (e) {
-          alert("Xatolik yuz berdi: " + e.message);
+          alert("Xatolik: " + e.message);
         }
       }
+
+      window.onload = addItemRow;
     </script>
   </body>
 </html>
