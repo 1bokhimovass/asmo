@@ -10,72 +10,18 @@
     />
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="config.js"></script>
 
     <style>
       body {
         background-color: #f4f7f6;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Segoe UI", sans-serif;
       }
       .main-card {
         border-radius: 20px;
         border: none;
-        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
       }
-      .back-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 42px;
-        height: 42px;
-        background: white;
-        color: #333;
-        text-decoration: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        transition: all 0.2s ease;
-        border: none;
-        margin-right: 15px;
-      }
-      .back-btn:hover {
-        background: #f8f9fa;
-        transform: scale(1.05);
-        color: #000;
-      }
-      .back-btn:active {
-        transform: scale(0.9);
-      }
-
-      @media (max-width: 768px) {
-        .table-responsive thead {
-          display: none;
-        }
-        .table-responsive tr {
-          display: block;
-          margin-bottom: 15px;
-          border: 1px solid #eee;
-          border-radius: 12px;
-          background: #fff;
-          padding: 10px;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        .table-responsive td {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border: none;
-          padding: 5px 10px;
-          text-align: right;
-        }
-        .table-responsive td::before {
-          content: attr(data-label);
-          font-weight: bold;
-          text-align: left;
-          color: #666;
-        }
-      }
-
       .sticky-header {
         position: sticky;
         top: 0;
@@ -83,57 +29,66 @@
         z-index: 100;
         padding: 15px 0;
       }
+      .stock-badge-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .stock-mini-badge {
+        background: #fff;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
       .text-summa {
         color: #198754;
         font-weight: bold;
       }
+      .back-btn {
+        text-decoration: none;
+        color: #333;
+        margin-right: 15px;
+        font-size: 1.2rem;
+      }
     </style>
-
-    <script>
-      auth.onAuthStateChanged((user) => {
-        if (!user) window.location.href = "login.html";
-      });
-    </script>
   </head>
   <body>
     <div class="sticky-header mb-3">
-      <div class="container d-flex align-items-center">
-        <a href="index.html" class="back-btn">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"
-            />
-          </svg>
-        </a>
-        <h2 class="fw-bold mb-0">📊 <span id="baza-title">Baza</span></h2>
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            <a href="index.html" class="back-btn">⬅️</a>
+            <h2 class="fw-bold mb-0">📊 <span id="baza-title">Baza</span></h2>
+          </div>
+          <div class="fw-bold">
+            Jami:
+            <span id="total-stock-display" class="badge bg-primary">0</span>
+            dona
+          </div>
+        </div>
+        <div id="size-stocks" class="stock-badge-container"></div>
       </div>
     </div>
 
     <div class="container pb-5">
       <div class="card main-card shadow-sm">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
+          <table class="table table-hover align-middle mb-0 text-center">
             <thead class="table-light">
               <tr>
-                <th class="py-3 ps-4">Sana</th>
-                <th class="py-3">Mahsulot</th>
+                <th class="py-3">Sana</th>
+                <th class="py-3">Mahsulot / Ma'lumot</th>
                 <th class="py-3">Partiya</th>
-                <th class="py-3">Miqdor</th>
-                <th class="py-3 pe-4">Summa</th>
+                <th class="py-3">Kirim</th>
+                <th class="py-3">Summa</th>
               </tr>
             </thead>
             <tbody id="baza-table">
               <tr>
-                <td colspan="5" class="py-5 text-center text-muted">
-                  Yuklanmoqda...
-                </td>
+                <td colspan="5" class="py-5 text-center">Yuklanmoqda...</td>
               </tr>
             </tbody>
           </table>
@@ -142,62 +97,112 @@
     </div>
 
     <script>
-      const savedTitle = localStorage.getItem("activeSubTitle");
-      const savedType = localStorage.getItem("selectedProduct");
+      const savedTitle = (
+        localStorage.getItem("activeSubTitle") || ""
+      ).toUpperCase();
+      const savedType = localStorage.getItem("selectedProduct") || "";
 
-      let filterName = "";
-      // Mahsulot nomini aniqlash (index.html dagi nomlar bilan bir xil bo'lishi shart)
-      if (savedTitle === "Gore-Tex Patch" || savedType === "Gore")
-        filterName = "GORE-TEX PATCH";
-      else if (savedTitle === "LED PCB" || savedType === "LED")
-        filterName = "LED PCB";
-      else if (savedTitle === "Avto Switch" || savedType === "Switch")
+      let filterName =
+        savedTitle.includes("GORE") || savedType === "Gore"
+          ? "GORE-TEX PATCH"
+          : "LED PCB";
+      if (!savedTitle.includes("GORE") && !savedTitle.includes("LED"))
         filterName = "AVTO SWITCH";
 
-      if (filterName) {
-        document.getElementById("baza-title").innerText =
-          filterName + " : Ombor";
+      document.getElementById("baza-title").innerText = filterName + " : Ombor";
+
+      function updateUI() {
+        db.ref("asmo_all_history").once("value", (hSnap) => {
+          let sizeStats = {};
+          let totalQty = 0;
+          let records = [];
+          const isGore = filterName.includes("GORE");
+
+          if (hSnap.exists()) {
+            hSnap.forEach((child) => {
+              const item = child.val();
+              if (item.product === filterName) {
+                // Guruhlash kalitini aniqlash
+                const sKey = isGore
+                  ? `${item.size} (${item.code})`
+                  : filterName;
+
+                if (!sizeStats[sKey]) sizeStats[sKey] = 0;
+                sizeStats[sKey] += parseFloat(item.qty || 0);
+
+                totalQty += parseFloat(item.qty || 0);
+                records.push(item);
+              }
+            });
+          }
+
+          db.ref("asmo_logistika_history").once("value", (lSnap) => {
+            if (lSnap.exists()) {
+              lSnap.forEach((child) => {
+                const s = child.val();
+                if (s.product === filterName) {
+                  const sKey =
+                    isGore && s.item
+                      ? s.item.replace("|", " (") + ")"
+                      : filterName;
+                  if (sizeStats[sKey] !== undefined) {
+                    sizeStats[sKey] -= parseFloat(s.qty || 0);
+                    totalQty -= parseFloat(s.qty || 0);
+                  }
+                }
+              });
+            }
+
+            // UI: O'lchamlar bo'yicha qoldiq (Faqat Gore uchun)
+            const sizeContainer = document.getElementById("size-stocks");
+            sizeContainer.innerHTML = "";
+            if (isGore) {
+              for (const [key, val] of Object.entries(sizeStats)) {
+                sizeContainer.innerHTML += `<div class="stock-mini-badge"><b>${key}:</b> ${val}</div>`;
+              }
+            }
+            document.getElementById("total-stock-display").innerText =
+              totalQty.toLocaleString();
+
+            // Jadval: Ma'lumotlarni chiqarish
+            const table = document.getElementById("baza-table");
+            if (records.length > 0) {
+              table.innerHTML = records
+                .reverse()
+                .map(
+                  (item) => `
+                <tr>
+                  <td><small class="text-muted">${item.time}</small></td>
+                  <td>
+                    <strong>${item.product}</strong>
+                    ${
+                      isGore && item.size
+                        ? `<br><small class="text-secondary">${item.size} / ${item.code}</small>`
+                        : ""
+                    }
+                  </td>
+                  <td><span class="badge bg-light text-dark border">${
+                    item.batch || "-"
+                  }</span></td>
+                  <td class="fw-bold text-primary">+${parseFloat(
+                    item.qty
+                  ).toLocaleString()} dona</td>
+                  <td class="text-summa">${parseFloat(
+                    item.jami_summa || item.qty * (item.price || 0)
+                  ).toLocaleString()} so'm</td>
+                </tr>`
+                )
+                .join("");
+            } else {
+              table.innerHTML =
+                "<tr><td colspan='5' class='py-5'>Ma'lumot topilmadi.</td></tr>";
+            }
+          });
+        });
       }
 
-      db.ref("asmo_all_history").on("value", (snapshot) => {
-        const data = snapshot.val();
-        const table = document.getElementById("baza-table");
-
-        if (data) {
-          const allRecords = Object.values(data);
-          // Faqat tanlangan mahsulotga tegishli ma'lumotlarni filtrlaymiz
-          const filteredRecords = allRecords.filter(
-            (item) => item.product === filterName
-          );
-
-          if (filteredRecords.length > 0) {
-            table.innerHTML = filteredRecords
-              .reverse()
-              .map((item) => {
-                // Summani hisoblash (agar narx bo'lmasa 0 deb oladi)
-                const totalSum = (
-                  item.qty * (item.price || 0)
-                ).toLocaleString();
-
-                return `
-                <tr>
-                  <td data-label="Sana" class="ps-4"><small class="text-muted">${item.time}</small></td>
-                  <td data-label="Mahsulot"><strong>${item.product}</strong></td>
-                  <td data-label="Partiya"><span class="badge bg-light text-dark border">${item.batch}</span></td>
-                  <td data-label="Miqdor" class="fw-bold text-primary">${item.qty} dona</td>
-                  <td data-label="Summa" class="pe-4 text-summa">${totalSum} so'm</td>
-                </tr>`;
-              })
-              .join("");
-          } else {
-            table.innerHTML =
-              "<tr><td colspan='5' class='py-5 text-center'>Ushbu mahsulot bo'yicha ma'lumot topilmadi.</td></tr>";
-          }
-        } else {
-          table.innerHTML =
-            "<tr><td colspan='5' class='py-5 text-center'>Baza bo'sh.</td></tr>";
-        }
-      });
+      db.ref("asmo_all_history").on("value", updateUI);
+      db.ref("asmo_logistika_history").on("value", updateUI);
     </script>
   </body>
 </html>
